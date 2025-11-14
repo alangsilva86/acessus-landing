@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { HelpCircle } from "lucide-react";
 
 export default function FAQ() {
   const faqs = [
@@ -33,21 +34,48 @@ export default function FAQ() {
     <section className="py-16 bg-white">
       <div className="container">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-12">
-            Perguntas frequentes
-          </h2>
-          <Accordion type="single" collapsible className="w-full">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+              <HelpCircle className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Perguntas frequentes
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Tire suas dúvidas antes de simular
+            </p>
+          </div>
+          
+          <Accordion type="single" collapsible className="w-full space-y-4">
             {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-left">
+              <AccordionItem 
+                key={index} 
+                value={`item-${index}`}
+                className="border border-border rounded-lg px-6 bg-white shadow-sm hover:shadow-md transition-shadow"
+              >
+                <AccordionTrigger className="text-left text-base sm:text-lg font-semibold hover:no-underline py-5">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
+                <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
+
+          <div className="mt-12 text-center">
+            <p className="text-muted-foreground mb-4">
+              Não encontrou sua resposta?
+            </p>
+            <a 
+              href="https://wa.me/5511999999999" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
+            >
+              Fale conosco pelo WhatsApp →
+            </a>
+          </div>
         </div>
       </div>
     </section>
