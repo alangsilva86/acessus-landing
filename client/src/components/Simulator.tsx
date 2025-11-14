@@ -92,13 +92,14 @@ export default function Simulator({ onComplete }: SimulatorProps) {
       }
     }
 
-    if (step < 3) {
+    if (step < 2) {
       setStep(step + 1);
       // Scroll suave para o topo do simulador
       setTimeout(() => {
         document.getElementById('simulador')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     } else {
+      // Passo 2 completo, chamar onComplete
       onComplete(data);
     }
   };
@@ -198,48 +199,57 @@ export default function Simulator({ onComplete }: SimulatorProps) {
                       <InfoTooltip content="Escolha o tipo de vínculo que você tem com o órgão pagador" />
                     </Label>
                     <RadioGroup value={data.userType} onValueChange={(v) => updateData('userType', v)}>
-                      <div className={cn(
-                        "flex items-center space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                        data.userType === "municipal" 
-                          ? "border-primary bg-primary/5 shadow-md" 
-                          : "border-border hover:border-primary/50 hover:bg-accent/50"
-                      )}>
-                        <RadioGroupItem value="municipal" id="municipal" className="w-5 h-5" />
-                        <Label htmlFor="municipal" className="flex-1 cursor-pointer text-base">
+                      <label
+                        htmlFor="municipal"
+                        className={cn(
+                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
+                          data.userType === "municipal" 
+                            ? "border-primary bg-primary/5 shadow-md" 
+                            : "border-border hover:border-primary/50 hover:bg-accent/50"
+                        )}
+                      >
+                        <RadioGroupItem value="municipal" id="municipal" className="w-6 h-6" />
+                        <span className="flex-1 text-lg font-medium">
                           Servidor Municipal
-                        </Label>
+                        </span>
                         {data.userType === "municipal" && (
-                          <CheckCircle2 className="w-5 h-5 text-primary" />
+                          <CheckCircle2 className="w-6 h-6 text-primary" />
                         )}
-                      </div>
-                      <div className={cn(
-                        "flex items-center space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                        data.userType === "estadual" 
-                          ? "border-primary bg-primary/5 shadow-md" 
-                          : "border-border hover:border-primary/50 hover:bg-accent/50"
-                      )}>
-                        <RadioGroupItem value="estadual" id="estadual" className="w-5 h-5" />
-                        <Label htmlFor="estadual" className="flex-1 cursor-pointer text-base">
+                      </label>
+                      <label
+                        htmlFor="estadual"
+                        className={cn(
+                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
+                          data.userType === "estadual" 
+                            ? "border-primary bg-primary/5 shadow-md" 
+                            : "border-border hover:border-primary/50 hover:bg-accent/50"
+                        )}
+                      >
+                        <RadioGroupItem value="estadual" id="estadual" className="w-6 h-6" />
+                        <span className="flex-1 text-lg font-medium">
                           Servidor Estadual
-                        </Label>
+                        </span>
                         {data.userType === "estadual" && (
-                          <CheckCircle2 className="w-5 h-5 text-primary" />
+                          <CheckCircle2 className="w-6 h-6 text-primary" />
                         )}
-                      </div>
-                      <div className={cn(
-                        "flex items-center space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                        data.userType === "inss" 
-                          ? "border-primary bg-primary/5 shadow-md" 
-                          : "border-border hover:border-primary/50 hover:bg-accent/50"
-                      )}>
-                        <RadioGroupItem value="inss" id="inss" className="w-5 h-5" />
-                        <Label htmlFor="inss" className="flex-1 cursor-pointer text-base">
+                      </label>
+                      <label
+                        htmlFor="inss"
+                        className={cn(
+                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
+                          data.userType === "inss" 
+                            ? "border-primary bg-primary/5 shadow-md" 
+                            : "border-border hover:border-primary/50 hover:bg-accent/50"
+                        )}
+                      >
+                        <RadioGroupItem value="inss" id="inss" className="w-6 h-6" />
+                        <span className="flex-1 text-lg font-medium">
                           Aposentado/Pensionista INSS
-                        </Label>
+                        </span>
                         {data.userType === "inss" && (
-                          <CheckCircle2 className="w-5 h-5 text-primary" />
+                          <CheckCircle2 className="w-6 h-6 text-primary" />
                         )}
-                      </div>
+                      </label>
                     </RadioGroup>
                   </div>
 
@@ -249,17 +259,17 @@ export default function Simulator({ onComplete }: SimulatorProps) {
                       <InfoTooltip content="Escolha o órgão onde você trabalha ou recebe seu benefício" />
                     </Label>
                     <Select value={data.organ} onValueChange={(v) => updateData('organ', v)}>
-                      <SelectTrigger id="organ" className="h-12 text-base">
+                      <SelectTrigger id="organ" className="h-16 text-lg font-medium border-2 hover:border-primary/50 transition-colors">
                         <SelectValue placeholder="Escolha uma opção" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="prefeitura-sp">Prefeitura de São Paulo</SelectItem>
-                        <SelectItem value="prefeitura-rj">Prefeitura do Rio de Janeiro</SelectItem>
-                        <SelectItem value="prefeitura-bh">Prefeitura de Belo Horizonte</SelectItem>
-                        <SelectItem value="governo-sp">Governo do Estado de SP</SelectItem>
-                        <SelectItem value="governo-rj">Governo do Estado do RJ</SelectItem>
-                        <SelectItem value="governo-mg">Governo do Estado de MG</SelectItem>
-                        <SelectItem value="inss-geral">INSS</SelectItem>
+                      <SelectContent className="max-h-[300px]">
+                        <SelectItem value="prefeitura-sp" className="text-lg py-4 cursor-pointer">Prefeitura de São Paulo</SelectItem>
+                        <SelectItem value="prefeitura-rj" className="text-lg py-4 cursor-pointer">Prefeitura do Rio de Janeiro</SelectItem>
+                        <SelectItem value="prefeitura-bh" className="text-lg py-4 cursor-pointer">Prefeitura de Belo Horizonte</SelectItem>
+                        <SelectItem value="governo-sp" className="text-lg py-4 cursor-pointer">Governo do Estado de SP</SelectItem>
+                        <SelectItem value="governo-rj" className="text-lg py-4 cursor-pointer">Governo do Estado do RJ</SelectItem>
+                        <SelectItem value="governo-mg" className="text-lg py-4 cursor-pointer">Governo do Estado de MG</SelectItem>
+                        <SelectItem value="inss-geral" className="text-lg py-4 cursor-pointer">INSS</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -308,95 +318,109 @@ export default function Simulator({ onComplete }: SimulatorProps) {
                       <InfoTooltip content="É o tipo de desconto que você pode ter na sua folha de pagamento" />
                     </Label>
                     <RadioGroup value={data.marginType} onValueChange={(v) => updateData('marginType', v)}>
-                      <div className={cn(
-                        "flex items-center space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                        data.marginType === "emprestimo" 
-                          ? "border-primary bg-primary/5 shadow-md" 
-                          : "border-border hover:border-primary/50 hover:bg-accent/50"
-                      )}>
-                        <RadioGroupItem value="emprestimo" id="emprestimo" className="w-5 h-5" />
-                        <Label htmlFor="emprestimo" className="flex-1 cursor-pointer">
-                          <div className="font-medium">Margem Empréstimo</div>
-                          <div className="text-sm text-muted-foreground">Para saque em dinheiro</div>
-                        </Label>
+                      <label
+                        htmlFor="emprestimo"
+                        className={cn(
+                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
+                          data.marginType === "emprestimo" 
+                            ? "border-primary bg-primary/5 shadow-md" 
+                            : "border-border hover:border-primary/50 hover:bg-accent/50"
+                        )}
+                      >
+                        <RadioGroupItem value="emprestimo" id="emprestimo" className="w-6 h-6" />
+                        <div className="flex-1">
+                          <div className="font-semibold text-lg">Margem Empréstimo</div>
+                          <div className="text-base text-muted-foreground">Para saque em dinheiro</div>
+                        </div>
                         {data.marginType === "emprestimo" && (
-                          <CheckCircle2 className="w-5 h-5 text-primary" />
+                          <CheckCircle2 className="w-6 h-6 text-primary" />
                         )}
-                      </div>
-                      <div className={cn(
-                        "flex items-center space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                        data.marginType === "cartao" 
-                          ? "border-primary bg-primary/5 shadow-md" 
-                          : "border-border hover:border-primary/50 hover:bg-accent/50"
-                      )}>
-                        <RadioGroupItem value="cartao" id="cartao" className="w-5 h-5" />
-                        <Label htmlFor="cartao" className="flex-1 cursor-pointer">
-                          <div className="font-medium">Margem Cartão Consignado</div>
-                          <div className="text-sm text-muted-foreground">Para usar como cartão de crédito</div>
-                        </Label>
+                      </label>
+                      <label
+                        htmlFor="cartao"
+                        className={cn(
+                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
+                          data.marginType === "cartao" 
+                            ? "border-primary bg-primary/5 shadow-md" 
+                            : "border-border hover:border-primary/50 hover:bg-accent/50"
+                        )}
+                      >
+                        <RadioGroupItem value="cartao" id="cartao" className="w-6 h-6" />
+                        <div className="flex-1">
+                          <div className="font-semibold text-lg">Margem Cartão Consignado</div>
+                          <div className="text-base text-muted-foreground">Para usar como cartão de crédito</div>
+                        </div>
                         {data.marginType === "cartao" && (
-                          <CheckCircle2 className="w-5 h-5 text-primary" />
+                          <CheckCircle2 className="w-6 h-6 text-primary" />
                         )}
-                      </div>
-                      <div className={cn(
-                        "flex items-center space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                        data.marginType === "beneficio" 
-                          ? "border-primary bg-primary/5 shadow-md" 
-                          : "border-border hover:border-primary/50 hover:bg-accent/50"
-                      )}>
-                        <RadioGroupItem value="beneficio" id="beneficio" className="w-5 h-5" />
-                        <Label htmlFor="beneficio" className="flex-1 cursor-pointer">
-                          <div className="font-medium">Margem Cartão Benefício</div>
-                          <div className="text-sm text-muted-foreground">Para alimentação/refeição</div>
-                        </Label>
+                      </label>
+                      <label
+                        htmlFor="beneficio"
+                        className={cn(
+                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
+                          data.marginType === "beneficio" 
+                            ? "border-primary bg-primary/5 shadow-md" 
+                            : "border-border hover:border-primary/50 hover:bg-accent/50"
+                        )}
+                      >
+                        <RadioGroupItem value="beneficio" id="beneficio" className="w-6 h-6" />
+                        <div className="flex-1">
+                          <div className="font-semibold text-lg">Margem Cartão Benefício</div>
+                          <div className="text-base text-muted-foreground">Para alimentação/refeição</div>
+                        </div>
                         {data.marginType === "beneficio" && (
-                          <CheckCircle2 className="w-5 h-5 text-primary" />
+                          <CheckCircle2 className="w-6 h-6 text-primary" />
                         )}
-                      </div>
-                      <div className={cn(
-                        "flex items-center space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                        data.marginType === "outra" 
-                          ? "border-primary bg-primary/5 shadow-md" 
-                          : "border-border hover:border-primary/50 hover:bg-accent/50"
-                      )}>
-                        <RadioGroupItem value="outra" id="outra" className="w-5 h-5" />
-                        <Label htmlFor="outra" className="flex-1 cursor-pointer">
-                          <div className="font-medium">Outra</div>
-                          <div className="text-sm text-muted-foreground">Não sei qual é minha margem</div>
-                        </Label>
+                      </label>
+                      <label
+                        htmlFor="outra"
+                        className={cn(
+                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
+                          data.marginType === "outra" 
+                            ? "border-primary bg-primary/5 shadow-md" 
+                            : "border-border hover:border-primary/50 hover:bg-accent/50"
+                        )}
+                      >
+                        <RadioGroupItem value="outra" id="outra" className="w-6 h-6" />
+                        <div className="flex-1">
+                          <div className="font-semibold text-lg">Outra</div>
+                          <div className="text-base text-muted-foreground">Não sei qual é minha margem</div>
+                        </div>
                         {data.marginType === "outra" && (
-                          <CheckCircle2 className="w-5 h-5 text-primary" />
+                          <CheckCircle2 className="w-6 h-6 text-primary" />
                         )}
-                      </div>
+                      </label>
                     </RadioGroup>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="marginValue" className="text-base flex items-center">
                       Quanto você pode descontar por mês? (R$)
-                      <InfoTooltip content="Digite o valor que aparece como 'margem disponível' no seu contracheque ou app do banco" />
+                      <InfoTooltip content="É o valor que pode ser descontado da sua folha de pagamento todo mês" />
                     </Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground font-medium">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-medium text-muted-foreground pointer-events-none">
                         R$
                       </span>
                       <Input
                         id="marginValue"
-                        type="tel"
-                        placeholder="0,00"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="500,00"
                         value={data.marginValue}
                         onChange={handleMarginChange}
+                        onBlur={() => setTouched(prev => ({ ...prev, marginValue: true }))}
                         className={cn(
-                          "h-14 text-lg pl-12 pr-10",
-                          errors.marginValue && touched.marginValue ? "border-destructive" : "",
-                          data.marginValue && validateMarginValue(data.marginValue) ? "border-primary" : ""
+                          "h-16 text-lg font-medium pl-14 pr-12 border-2 transition-colors",
+                          errors.marginValue && touched.marginValue
+                            ? "border-destructive"
+                            : data.marginValue && !errors.marginValue
+                            ? "border-primary"
+                            : "hover:border-primary/50"
                         )}
                       />
-                      {data.marginValue && validateMarginValue(data.marginValue) && (
-                        <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
-                      )}
-                      {errors.marginValue && touched.marginValue && (
-                        <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-destructive" />
+                      {data.marginValue && !errors.marginValue && (
+                        <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
                       )}
                     </div>
                     {errors.marginValue && touched.marginValue && (

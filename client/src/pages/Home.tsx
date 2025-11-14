@@ -33,8 +33,7 @@ export default function Home() {
 
   const handleSimulationComplete = (data: SimulationData) => {
     setSimulationData(data);
-    setShowSimulator(false);
-    // Scroll suave até o resultado
+    // Manter simulador visível mas scroll para o topo
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 100);
@@ -51,16 +50,21 @@ export default function Home() {
       <TrustBar />
       
       <main className="flex-1">
-        {simulationData ? (
-          <SimulationResult data={simulationData} onReset={handleReset} />
-        ) : (
+        {!showSimulator && !simulationData && (
           <>
             <Hero onSimulateClick={handleSimulateClick} />
             <TrustBlock />
-            {showSimulator && <Simulator onComplete={handleSimulationComplete} />}
             <SocialProof />
             <FAQ />
           </>
+        )}
+        
+        {showSimulator && !simulationData && (
+          <Simulator onComplete={handleSimulationComplete} />
+        )}
+        
+        {simulationData && (
+          <SimulationResult data={simulationData} onReset={handleReset} />
         )}
       </main>
 

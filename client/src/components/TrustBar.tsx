@@ -6,7 +6,7 @@ export default function TrustBar() {
     <div className="bg-white border-b border-border shadow-sm sticky top-0 z-50">
       <div className="container py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img src={APP_LOGO} alt="Acessus" className="h-8 sm:h-10" />
+          <img src={APP_LOGO} alt="Acessus" className="h-12 sm:h-16" />
         </div>
         <div className="flex items-center gap-3 sm:gap-6">
           <span className="hidden md:inline text-sm text-foreground font-medium">

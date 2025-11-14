@@ -76,3 +76,23 @@
 - [ ] Botões fixos no bottom da tela mobile (não implementado - requer JS adicional)
 - [x] Reduzir quantidade de informação por tela
 - [ ] Gestos de swipe entre passos (não implementado - requer biblioteca adicional)
+
+## Bugs Críticos - QA Testing
+
+### Problemas Identificados
+- [x] Logo da Acessus muito pequena (impossível identificar) - Aumentada de h-8/h-10 para h-12/h-16
+- [x] Radio buttons só funcionam ao clicar na bolinha (área clicável muito pequena) - Toda a área do card agora é clicável com label
+- [x] Select de convênio desalinhado e pequeno - Aumentado para h-16 com texto lg
+- [x] Select não segue padrão de fintechs (Nubank) - Itens com py-4 e text-lg
+- [x] Resultado da simulação não aparece após preencher dados - Fluxo corrigido no Home.tsx
+- [x] Opções de prazo são exibidas no SimulationResult
+- [x] Botão de continuar/contratar (WhatsApp) aparece no resultado
+
+## Bugs Adicionais - Teste QA Completo
+
+### Resultado da Simulação
+- [x] Verificar se resultado aparece após preencher todos os campos - CORRIGIDO: handleNext chamava setStep(3) mas nunca onComplete
+- [x] Testar com valores diferentes (R$ 50,00, R$ 500,00, R$ 1.000,00) - Testado com R$ 1.000,00
+- [x] Validar cálculo do valor máximo de empréstimo - R$ 1.000,00 x 61,2 = R$ 61.200,00 correto
+- [x] Confirmar que opções de prazo são exibidas - 7 opções (24x, 36x, 48x, 60x, 72x, 84x, 96x)
+- [x] Testar botão do WhatsApp com preview da mensagem - Modal com preview completo funcionando
