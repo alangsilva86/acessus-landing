@@ -1,28 +1,70 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { APP_LOGO, APP_TITLE } from "@/const";
-import { Streamdown } from 'streamdown';
+import { useState } from "react";
+import TrustBar from "@/components/TrustBar";
+import Hero from "@/components/Hero";
+import TrustBlock from "@/components/TrustBlock";
+import Simulator from "@/components/Simulator";
+import SimulationResult from "@/components/SimulationResult";
+import SocialProof from "@/components/SocialProof";
+import FAQ from "@/components/FAQ";
+import Footer from "@/components/Footer";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
- */
+interface SimulationData {
+  userType: string;
+  organ: string;
+  birthDate: string;
+  marginType: string;
+  marginValue: string;
+}
+
 export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+  const [showSimulator, setShowSimulator] = useState(false);
+  const [simulationData, setSimulationData] = useState<SimulationData | null>(null);
 
-  // Use APP_LOGO (as image src) and APP_TITLE if needed
+  const handleSimulateClick = () => {
+    setShowSimulator(true);
+    // Scroll suave até o simulador
+    setTimeout(() => {
+      const element = document.getElementById('simulador');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
+  const handleSimulationComplete = (data: SimulationData) => {
+    setSimulationData(data);
+    setShowSimulator(false);
+    // Scroll suave até o resultado
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleReset = () => {
+    setSimulationData(null);
+    setShowSimulator(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
+      <TrustBar />
+      
+      <main className="flex-1">
+        {simulationData ? (
+          <SimulationResult data={simulationData} onReset={handleReset} />
+        ) : (
+          <>
+            <Hero onSimulateClick={handleSimulateClick} />
+            <TrustBlock />
+            {showSimulator && <Simulator onComplete={handleSimulationComplete} />}
+            <SocialProof />
+            <FAQ />
+          </>
+        )}
       </main>
+
+      <Footer />
     </div>
   );
 }
