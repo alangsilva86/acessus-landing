@@ -68,8 +68,17 @@ export default function Simulator({ onComplete }: SimulatorProps) {
     : undefined;
   const conveniosByType = selectedType ? getConveniosByTipo(selectedType) : [];
   const selectedConvenio = data.organ ? getConvenioById(data.organ) : undefined;
+  const isMarginAvailable = (value: MarginType) => {
+    if (!selectedConvenio) return true;
+    return selectedConvenio.produtosDisponiveis?.includes(value) ?? false;
+  };
   const prioritizedMarginTypes = selectedConvenio?.produtosDisponiveis ?? [];
   const sortedMarginOptions = [...MARGIN_OPTIONS].sort((a, b) => {
+    const aAvailable = isMarginAvailable(a.value);
+    const bAvailable = isMarginAvailable(b.value);
+    if (aAvailable !== bAvailable) {
+      return aAvailable ? -1 : 1;
+    }
     const aIndex = prioritizedMarginTypes.indexOf(a.value);
     const bIndex = prioritizedMarginTypes.indexOf(b.value);
     if (aIndex === -1 && bIndex === -1) return 0;
@@ -387,21 +396,20 @@ export default function Simulator({ onComplete }: SimulatorProps) {
                     </Label>
                     <RadioGroup value={data.marginType} onValueChange={(v) => updateData('marginType', v)}>
                       {sortedMarginOptions.map((option) => {
-                        const isAvailable = selectedConvenio
-                          ? selectedConvenio.produtosDisponiveis?.includes(option.value) ?? false
-                          : true;
+                        const isAvailable = isMarginAvailable(option.value);
                         return (
                           <label
                             key={option.value}
                             htmlFor={option.value}
                             aria-disabled={!isAvailable}
+                            title={!isAvailable ? "Ainda não temos dados de margem para esse convênio." : undefined}
                             className={cn(
                               "flex items-center space-x-4 p-5 border-2 rounded-xl transition-all duration-200",
                               isAvailable
                                 ? data.marginType === option.value
                                   ? "border-primary bg-primary/5 shadow-md"
                                   : "border-border hover:border-primary/50 hover:bg-accent/50 cursor-pointer"
-                                : "border-border bg-muted/20 text-muted-foreground opacity-60 cursor-not-allowed pointer-events-none"
+                                : "border-border bg-muted/20 text-muted-foreground opacity-60 cursor-not-allowed"
                             )}
                           >
                             <RadioGroupItem
