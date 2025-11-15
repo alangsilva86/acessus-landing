@@ -96,3 +96,12 @@
 - [x] Validar cálculo do valor máximo de empréstimo - R$ 1.000,00 x 61,2 = R$ 61.200,00 correto
 - [x] Confirmar que opções de prazo são exibidas - 7 opções (24x, 36x, 48x, 60x, 72x, 84x, 96x)
 - [x] Testar botão do WhatsApp com preview da mensagem - Modal com preview completo funcionando
+
+## Nova Feature - Botão Flutuante WhatsApp
+
+### Requisito
+- [x] Botão flutuante fixo do WhatsApp na tela de resultado
+- [x] Sempre visível no canto inferior direito
+- [x] Animação de pulse para chamar atenção
+- [x] Funciona em mobile e desktop
+- [x] Abre o mesmo modal de preview do WhatsApp

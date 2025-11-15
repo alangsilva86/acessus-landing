@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, RefreshCw, CheckCircle2, TrendingDown, Shield } from "lucide-react";
 import WhatsAppPreview from "./WhatsAppPreview";
+import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
 import { cn } from "@/lib/utils";
 
 interface SimulationData {
@@ -242,6 +243,9 @@ Aguardo retorno!`;
         open={showPreview}
         onOpenChange={setShowPreview}
       />
+      
+      {/* Botão flutuante fixo do WhatsApp */}
+      <FloatingWhatsAppButton onClick={() => setShowPreview(true)} />
     </section>
   );
 }
