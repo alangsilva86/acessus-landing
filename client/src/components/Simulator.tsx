@@ -41,7 +41,6 @@ type MarginTypeOption = MarginType | "";
 interface SimulationData {
   userType: string;
   organ: string;
-  birthDate: string;
   marginType: MarginTypeOption;
   marginValue: string;
 }
@@ -55,7 +54,6 @@ export default function Simulator({ onComplete }: SimulatorProps) {
   const [data, setData] = useState<SimulationData>({
     userType: "",
     organ: "",
-    birthDate: "",
     marginType: "",
     marginValue: ""
   });
@@ -108,17 +106,6 @@ export default function Simulator({ onComplete }: SimulatorProps) {
     }
   };
 
-  const validateBirthDate = (date: string): boolean => {
-    if (date.length !== 10) return false;
-    const [day, month, year] = date.split('/').map(Number);
-    if (!day || !month || !year) return false;
-    if (day < 1 || day > 31) return false;
-    if (month < 1 || month > 12) return false;
-    const currentYear = new Date().getFullYear();
-    if (year < 1900 || year > currentYear - 18) return false;
-    return true;
-  };
-
   const validateMarginValue = (value: string): boolean => {
     if (!value) return false;
     const numValue = parseFloat(value.replace(/\./g, '').replace(',', '.'));
@@ -129,8 +116,6 @@ export default function Simulator({ onComplete }: SimulatorProps) {
     if (step === 1) return data.userType && data.organ;
     if (step === 2) {
       return (
-        data.birthDate &&
-        validateBirthDate(data.birthDate) &&
         data.marginType &&
         data.marginValue &&
         validateMarginValue(data.marginValue)
@@ -140,14 +125,9 @@ export default function Simulator({ onComplete }: SimulatorProps) {
   };
 
   const handleNext = () => {
-    // Validar antes de avançar
     if (step === 2) {
       const newErrors: Partial<Record<keyof SimulationData, string>> = {};
-      
-      if (!validateBirthDate(data.birthDate)) {
-        newErrors.birthDate = "Data inválida. Use o formato DD/MM/AAAA";
-      }
-      
+
       if (!validateMarginValue(data.marginValue)) {
         newErrors.marginValue = "Digite um valor válido";
       }
@@ -160,12 +140,10 @@ export default function Simulator({ onComplete }: SimulatorProps) {
 
     if (step < 2) {
       setStep(step + 1);
-      // Scroll suave para o topo do simulador
       setTimeout(() => {
         document.getElementById('simulador')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     } else {
-      // Passo 2 completo, chamar onComplete
       onComplete(data);
     }
   };
@@ -177,18 +155,6 @@ export default function Simulator({ onComplete }: SimulatorProps) {
         document.getElementById('simulador')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     }
-  };
-
-  const formatDate = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 2) return numbers;
-    if (numbers.length <= 4) return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
-    return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatDate(e.target.value);
-    updateData('birthDate', formatted);
   };
 
   const formatCurrency = (value: string) => {
@@ -355,40 +321,6 @@ export default function Simulator({ onComplete }: SimulatorProps) {
 
               {step === 2 && (
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="birthDate" className="text-base flex items-center">
-                      Data de nascimento
-                      <InfoTooltip content="Digite no formato: dia/mês/ano (ex: 15/03/1980)" />
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="birthDate"
-                        type="tel"
-                        placeholder="DD/MM/AAAA"
-                        value={data.birthDate}
-                        onChange={handleDateChange}
-                        maxLength={10}
-                        className={cn(
-                          "h-14 text-lg pr-10",
-                          errors.birthDate && touched.birthDate ? "border-destructive" : "",
-                          data.birthDate && validateBirthDate(data.birthDate) ? "border-primary" : ""
-                        )}
-                      />
-                      {data.birthDate && validateBirthDate(data.birthDate) && (
-                        <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
-                      )}
-                      {errors.birthDate && touched.birthDate && (
-                        <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-destructive" />
-                      )}
-                    </div>
-                    {errors.birthDate && touched.birthDate && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-4 h-4" />
-                        {errors.birthDate}
-                      </p>
-                    )}
-                  </div>
-
                   <div className="space-y-3">
                     <Label className="text-base font-semibold flex items-center gap-2">
                       Tipo de margem disponível

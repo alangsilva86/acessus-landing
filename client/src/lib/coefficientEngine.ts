@@ -1,4 +1,4 @@
-import { convenios, type Convenio, type MarginType } from "@/data/convenios";
+import { convenios, type Convenio, type MarginType, getTaxaForMargin } from "@/data/convenios";
 
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
 const IOF_DAILY_RATE = 0.000038;
@@ -29,15 +29,6 @@ interface CoefficientRegistry {
   };
 }
 
-type TaxField = keyof NonNullable<Convenio["taxas"]>;
-
-const marginToTaxField: Record<MarginType, TaxField> = {
-  emprestimo: "normal",
-  cartao: "normal",
-  beneficio: "normal",
-  outra: "normal"
-};
-
 const coefficientRegistry = buildCoefficientRegistry(convenios, DEFAULT_TERMS);
 
 function buildCoefficientRegistry(
@@ -55,7 +46,7 @@ function buildCoefficientRegistry(
     const totalDays = Math.max(0, differenceInDays(fim, inicio));
 
     for (const prazo of prazos) {
-      const taxa = getTaxa(convenio, "beneficio");
+      const taxa = getTaxaForMargin(convenio.id, "beneficio");
       if (taxa === null) {
         continue;
       }
@@ -102,12 +93,6 @@ function differenceInDays(late: Date, early: Date): number {
 
 function addDays(date: Date, days: number): Date {
   return new Date(date.getTime() + days * MS_IN_DAY);
-}
-
-function getTaxa(convenio: Convenio, marginType: MarginType) {
-  const field = marginToTaxField[marginType];
-  const valor = convenio.taxas?.[field];
-  return valor ?? null;
 }
 
 function getCarenciaFactor(prazoMeses: number) {

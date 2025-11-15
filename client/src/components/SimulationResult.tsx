@@ -19,7 +19,6 @@ import { simulateWithMargin, DEFAULT_TERMS } from "@/lib/coefficientEngine";
 interface SimulationData {
   userType: string;
   organ: string;
-  birthDate: string;
   marginType: string;
   marginValue: string;
 }
@@ -115,10 +114,9 @@ export default function SimulationResult({ data, onReset }: SimulationResultProp
 
   const message = `Olá! Acabei de fazer uma simulação no site da Acessus e gostaria de finalizar meu crédito.
 
-*Meus dados:*
+- Meus dados:*
 - Tipo: ${userTypeText}
 - Órgão: ${organLabel}
-- Data de nascimento: ${data.birthDate}
 - Tipo de margem: ${marginTypeText}
 - Valor da margem: R$ ${formatCurrency(parcela)}
 

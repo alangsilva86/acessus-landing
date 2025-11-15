@@ -1,3 +1,7 @@
+/**
+ * Convenios metadata lives here with explicit fields for easier future updates.
+ * Add new entries by following the pattern (id/name/tipo/janela/taxas/produtosDisponiveis).
+ */
 export type ConvenioTipo = "municipal" | "estadual" | "inss";
 export type MarginType = "emprestimo" | "cartao" | "beneficio" | "outra";
 
@@ -15,10 +19,10 @@ export interface Convenio {
     flex1?: number;
     flex2?: number;
   };
-  produtosDisponiveis?: MarginType[];
+  produtosDisponiveis: MarginType[];
 }
 
-export const convenios: Convenio[] = [
+const conveniosData: Convenio[] = [
   {
     id: "gov-pr",
     name: "Governo do Paraná",
@@ -28,11 +32,7 @@ export const convenios: Convenio[] = [
       fim: "30/11/25",
       vencimento: "10/02/26"
     },
-    taxas: {
-      normal: 4.8,
-      flex1: 4.3,
-      flex2: 3.5
-    },
+    taxas: { normal: 4.8, flex1: 4.3, flex2: 3.5 },
     produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
   },
   {
@@ -44,11 +44,7 @@ export const convenios: Convenio[] = [
       fim: "30/11/25",
       vencimento: "10/01/26"
     },
-    taxas: {
-      normal: 4.5,
-      flex1: 4.2,
-      flex2: 3.9
-    },
+    taxas: { normal: 4.5, flex1: 4.2, flex2: 3.9 },
     produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
   },
   {
@@ -230,8 +226,32 @@ export const convenios: Convenio[] = [
   }
 ];
 
-export const getConvenioById = (id?: string) =>
-  convenios.find((convenio) => convenio.id === id);
+const conveniosMap = new Map(conveniosData.map((convenio) => [convenio.id, convenio]));
+
+export const convenios = conveniosData;
+
+type TaxField = "normal" | "flex1" | "flex2";
+
+export const convertionMarginField: Record<MarginType, TaxField> = {
+  emprestimo: "normal",
+  cartao: "normal",
+  beneficio: "normal",
+  outra: "normal"
+};
+
+export const getConvenioById = (id?: string) => {
+  if (!id) return undefined;
+  return conveniosMap.get(id);
+};
 
 export const getConveniosByTipo = (tipo: ConvenioTipo) =>
-  convenios.filter((convenio) => convenio.tipo === tipo);
+  conveniosData.filter((convenio) => convenio.tipo === tipo);
+
+export const getAllConvenios = () => [...conveniosData];
+
+export const getTaxaForMargin = (convenioId: string, margin: MarginType) => {
+  const convenio = getConvenioById(convenioId);
+  if (!convenio) return null;
+  const field = convertionMarginField[margin];
+  return convenio.taxas?.[field] ?? null;
+};
