@@ -1,10 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, RefreshCw, CheckCircle2, TrendingDown, Shield } from "lucide-react";
+import {
+  MessageCircle,
+  RefreshCw,
+  CheckCircle2,
+  TrendingDown,
+  Shield,
+  AlertTriangle
+} from "lucide-react";
 import WhatsAppPreview from "./WhatsAppPreview";
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
 import { cn } from "@/lib/utils";
+import { getConvenioById } from "@/data/convenios";
+import InfoTooltip from "@/components/InfoTooltip";
+import { simulateWithMargin, DEFAULT_TERMS } from "@/lib/coefficientEngine";
 
 interface SimulationData {
   userType: string;
@@ -19,26 +29,58 @@ interface SimulationResultProps {
   onReset: () => void;
 }
 
+const formatCurrency = (value: number) =>
+  value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export default function SimulationResult({ data, onReset }: SimulationResultProps) {
-  const [selectedTerm, setSelectedTerm] = useState(72);
-  const [showPreview, setShowPreview] = useState(false);
-  const [animatedAmount, setAnimatedAmount] = useState(0);
+  const marginNumber = parseFloat(data.marginValue.replace(/\./g, "").replace(",", ".")) || 0;
+  const referenceDate = useMemo(() => new Date(), [data.organ, data.marginValue]);
 
-  // Cálculo simplificado baseado na margem
-  const marginNumber = parseFloat(data.marginValue.replace(/\./g, '').replace(',', '.'));
-  const maxAmount = marginNumber * selectedTerm * 0.85; // Estimativa conservadora
+  const simulateTerm = useCallback(
+    (term: number) => simulateWithMargin(data.organ, marginNumber, term, referenceDate),
+    [data.organ, marginNumber, referenceDate]
+  );
 
-  // Animação de contador do valor
+  const termoSimulations = useMemo(
+    () => DEFAULT_TERMS.map((term) => ({ term, simulation: simulateTerm(term) })),
+    [simulateTerm]
+  );
+
+  const availableTerm = termoSimulations.find((entry) => entry.simulation)?.term ?? DEFAULT_TERMS[0];
+  const [selectedTerm, setSelectedTerm] = useState(availableTerm);
+
   useEffect(() => {
-    const duration = 1500; // 1.5 segundos
+    const hasSelected = termoSimulations.some((entry) => entry.term === selectedTerm && entry.simulation);
+    if (!hasSelected) {
+      if (availableTerm && availableTerm !== selectedTerm) {
+        setSelectedTerm(availableTerm);
+      } else if (!availableTerm) {
+        setSelectedTerm(DEFAULT_TERMS[0]);
+      }
+    }
+  }, [availableTerm, selectedTerm, termoSimulations]);
+
+  const currentEntry = termoSimulations.find((entry) => entry.term === selectedTerm);
+  const currentSimulation = currentEntry?.simulation ?? null;
+  const valorLiberado = currentSimulation?.valorBrutoLiberado ?? 0;
+  const totalSavings = currentSimulation ? currentSimulation.valorBrutoLiberado * 0.18 : 0;
+
+  useEffect(() => {
+    const duration = 1500;
     const steps = 60;
-    const increment = maxAmount / steps;
+    const target = valorLiberado;
+    const increment = target / steps;
     let current = 0;
-    
+
+    if (target === 0) {
+      setAnimatedAmount(0);
+      return;
+    }
+
     const timer = setInterval(() => {
       current += increment;
-      if (current >= maxAmount) {
-        setAnimatedAmount(maxAmount);
+      if (current >= target) {
+        setAnimatedAmount(target);
         clearInterval(timer);
       } else {
         setAnimatedAmount(current);
@@ -46,61 +88,57 @@ export default function SimulationResult({ data, onReset }: SimulationResultProp
     }, duration / steps);
 
     return () => clearInterval(timer);
-  }, [maxAmount]);
+  }, [valorLiberado]);
 
-  const terms = [24, 36, 48, 60, 72, 84, 96];
-  
-  const calculateInstallment = (term: number) => {
-    return maxAmount / term;
-  };
+  const [showPreview, setShowPreview] = useState(false);
+  const [animatedAmount, setAnimatedAmount] = useState(valorLiberado);
 
-  // Cálculo de economia vs banco tradicional (estimativa)
-  const traditionalRate = 2.5; // Taxa mensal típica de banco tradicional
-  const consignadoRate = 1.8; // Taxa mensal consignado
-  const savingsPerMonth = (maxAmount * (traditionalRate - consignadoRate)) / 100;
-  const totalSavings = savingsPerMonth * selectedTerm;
+  const selectedConvenio = getConvenioById(data.organ);
+  const organLabel = selectedConvenio?.name ?? data.organ;
+
+  const userTypeText = {
+    municipal: "Servidor Municipal",
+    estadual: "Servidor Estadual",
+    inss: "Aposentado/Pensionista INSS"
+  }[data.userType] || data.userType;
+
+  const marginTypeText = {
+    emprestimo: "Margem Empréstimo",
+    cartao: "Margem Cartão Consignado",
+    beneficio: "Margem Cartão Benefício",
+    outra: "Outra"
+  }[data.marginType] || data.marginType;
 
   const getWhatsAppMessage = () => {
-    const userTypeText = {
-      municipal: "Servidor Municipal",
-      estadual: "Servidor Estadual",
-      inss: "Aposentado/Pensionista INSS"
-    }[data.userType] || data.userType;
+    const valor = currentSimulation?.valorBrutoLiberado ?? 0;
+    const parcela = marginNumber;
 
-    const marginTypeText = {
-      emprestimo: "Margem Empréstimo",
-      cartao: "Margem Cartão Consignado",
-      beneficio: "Margem Cartão Benefício",
-      outra: "Outra"
-    }[data.marginType] || data.marginType;
-
-    const message = `Olá! Acabei de fazer uma simulação no site da Acessus e gostaria de finalizar meu crédito.
+  const message = `Olá! Acabei de fazer uma simulação no site da Acessus e gostaria de finalizar meu crédito.
 
 *Meus dados:*
 - Tipo: ${userTypeText}
-- Órgão: ${data.organ}
+- Órgão: ${organLabel}
 - Data de nascimento: ${data.birthDate}
 - Tipo de margem: ${marginTypeText}
-- Valor da margem: R$ ${data.marginValue}
+- Valor da margem: R$ ${formatCurrency(parcela)}
 
-*Simulação escolhida:*
-- Valor do saque: R$ ${maxAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+- Simulação escolhida:*
+- Valor do saque: R$ ${formatCurrency(valor)}
 - Prazo: ${selectedTerm}x
-- Parcela: R$ ${calculateInstallment(selectedTerm).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+- Parcela: R$ ${formatCurrency(parcela)}
 
 Aguardo retorno!`;
 
     return encodeURIComponent(message);
   };
 
-  const whatsappNumber = "5511999999999"; // Número do WhatsApp da Acessus
+  const whatsappNumber = "5511999999999";
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${getWhatsAppMessage()}`;
 
   return (
     <section className="py-16 bg-gradient-to-br from-white to-accent/20">
       <div className="container">
         <div className="max-w-3xl mx-auto">
-          {/* Badge de segurança fixo */}
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium animate-pulse">
               <Shield className="w-4 h-4" />
@@ -120,16 +158,21 @@ Aguardo retorno!`;
                   Você pode sacar até
                 </CardTitle>
                 <div className="text-5xl sm:text-6xl font-bold text-foreground my-4">
-                  R$ {animatedAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <span>R$ {formatCurrency(animatedAmount)}</span>
                 </div>
                 <CardDescription className="text-base">
                   *Valores estimados. A oferta final depende da análise do banco e da margem disponível.
                 </CardDescription>
+                {!currentSimulation && (
+                  <p className="text-sm text-destructive flex items-center justify-center gap-2 mt-3">
+                    <AlertTriangle className="w-4 h-4" />
+                    Coeficiente diário indisponível para essa combinação {`(Etapas 5–6)`}.
+                  </p>
+                )}
               </CardHeader>
             </div>
 
             <CardContent className="space-y-6 pt-6">
-              {/* Destaque de economia */}
               <div className="bg-gradient-to-r from-primary/10 to-accent/30 p-4 rounded-xl border border-primary/20">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -140,7 +183,7 @@ Aguardo retorno!`;
                       Economia estimada vs banco tradicional
                     </p>
                     <p className="text-2xl font-bold text-primary">
-                      R$ {totalSavings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      R$ {formatCurrency(totalSavings)}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       ao longo de {selectedTerm} meses
@@ -152,67 +195,71 @@ Aguardo retorno!`;
               <div className="space-y-3">
                 <h3 className="font-semibold text-center mb-4 text-lg">Escolha o prazo de pagamento:</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {terms.map((term) => (
+                  {termoSimulations.map(({ term, simulation }) => (
                     <button
                       key={term}
-                      onClick={() => setSelectedTerm(term)}
+                      onClick={() => simulation && setSelectedTerm(term)}
+                      disabled={!simulation}
                       className={cn(
                         "p-4 rounded-xl border-2 transition-all duration-200",
-                        selectedTerm === term
-                          ? 'border-primary bg-primary/10 shadow-lg scale-105'
-                          : 'border-border hover:border-primary/50 hover:bg-accent/50'
+                        !simulation
+                          ? "border-border bg-muted/40 opacity-60 cursor-not-allowed"
+                          : selectedTerm === term
+                            ? "border-primary bg-primary/10 shadow-lg scale-105"
+                            : "border-border hover:border-primary/50 hover:bg-accent/50"
                       )}
                     >
-                      <div className="text-xl font-bold text-foreground">{term}x</div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        R$ {calculateInstallment(term).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xl font-bold text-foreground">{term}x</span>
+                        {!simulation && (
+                          <InfoTooltip content="Coeficiente diário ainda não calculado para esse prazo." />
+                        )}
                       </div>
-                      {selectedTerm === term && (
-                        <div className="mt-2">
-                          <CheckCircle2 className="w-4 h-4 text-primary mx-auto" />
-                        </div>
-                      )}
+                      <div className="text-sm text-muted-foreground mt-2">
+                        {simulation
+                          ? `R$ ${formatCurrency(simulation.valorBrutoLiberado)}`
+                          : "Sem dados"}
+                      </div>
                     </button>
                   ))}
                 </div>
                 <p className="text-xs text-center text-muted-foreground">
-                  Toque no prazo para ver o valor da parcela
+                  Os coeficientes seguem a interpolação descrita nas etapas 5‑6.
                 </p>
               </div>
 
-              {/* Informações do prazo selecionado */}
               <div className="bg-accent/30 p-4 rounded-lg border border-border">
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Valor total</p>
+                    <p className="text-sm text-muted-foreground mb-1">Valor total liberado</p>
                     <p className="text-xl font-bold text-foreground">
-                      R$ {maxAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      R$ {formatCurrency(valorLiberado)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Parcela mensal</p>
                     <p className="text-xl font-bold text-primary">
-                      R$ {calculateInstallment(selectedTerm).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      R$ {formatCurrency(marginNumber)}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-                <p className="text-sm text-center">
-                  <strong className="text-foreground">Atendimento humano, sem robô empurrando oferta.</strong>
-                  <br />
-                  <span className="text-muted-foreground">
-                    Nossa equipe vai analisar seu caso e apresentar as melhores condições disponíveis.
-                  </span>
-                </p>
-              </div>
+              {currentSimulation && (
+                <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 text-sm text-muted-foreground space-y-1">
+                  <p className="font-semibold text-foreground">Resumo</p>
+                  <p>Coeficiente diário (dia {currentSimulation.referenceDate}): {currentSimulation.coeficiente.toFixed(6)}</p>
+                  <p>TAC estimada: R$ {formatCurrency(currentSimulation.tac)}</p>
+                  <p>Valor líquido estimado: R$ {formatCurrency(currentSimulation.valorLiquidoCliente)}</p>
+                </div>
+              )}
 
               <div className="space-y-3 pt-4">
                 <Button
                   size="lg"
                   className="w-full text-lg h-auto py-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                  onClick={() => setShowPreview(true)}
+                  onClick={() => currentSimulation && setShowPreview(true)}
+                  disabled={!currentSimulation}
                 >
                   <MessageCircle className="w-5 h-5 mr-2" />
                   Finalizar pelo WhatsApp
@@ -243,9 +290,8 @@ Aguardo retorno!`;
         open={showPreview}
         onOpenChange={setShowPreview}
       />
-      
-      {/* Botão flutuante fixo do WhatsApp */}
-      <FloatingWhatsAppButton onClick={() => setShowPreview(true)} />
+
+      <FloatingWhatsAppButton onClick={() => currentSimulation && setShowPreview(true)} />
     </section>
   );
 }

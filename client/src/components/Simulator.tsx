@@ -8,12 +8,41 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, ChevronRight, CheckCircle2, Shield, AlertCircle } from "lucide-react";
 import InfoTooltip from "./InfoTooltip";
 import { cn } from "@/lib/utils";
+import { getConveniosByTipo, getConvenioById, type MarginType } from "@/data/convenios";
+
+const MARGIN_OPTIONS: { value: MarginType; label: string; description: string }[] = [
+  {
+    value: "emprestimo",
+    label: "Margem Empréstimo",
+    description: "Para saque em dinheiro"
+  },
+  {
+    value: "cartao",
+    label: "Margem Cartão Consignado",
+    description: "Para usar como cartão de crédito"
+  },
+  {
+    value: "beneficio",
+    label: "Margem Cartão Benefício",
+    description: "Para alimentação/refeição"
+  },
+  {
+    value: "outra",
+    label: "Outra",
+    description: "Não sei qual é minha margem"
+  }
+];
+
+const KNOWN_USER_TYPES = ["municipal", "estadual", "inss"] as const;
+type KnownUserType = (typeof KNOWN_USER_TYPES)[number];
+
+type MarginTypeOption = MarginType | "";
 
 interface SimulationData {
   userType: string;
   organ: string;
   birthDate: string;
-  marginType: string;
+  marginType: MarginTypeOption;
   marginValue: string;
 }
 
@@ -32,9 +61,37 @@ export default function Simulator({ onComplete }: SimulatorProps) {
   });
   const [errors, setErrors] = useState<Partial<Record<keyof SimulationData, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof SimulationData, boolean>>>({});
-
+  const selectedType: KnownUserType | undefined = KNOWN_USER_TYPES.includes(
+    data.userType as KnownUserType
+  )
+    ? (data.userType as KnownUserType)
+    : undefined;
+  const conveniosByType = selectedType ? getConveniosByTipo(selectedType) : [];
+  const selectedConvenio = data.organ ? getConvenioById(data.organ) : undefined;
+  const prioritizedMarginTypes = selectedConvenio?.produtosDisponiveis ?? [];
+  const sortedMarginOptions = [...MARGIN_OPTIONS].sort((a, b) => {
+    const aIndex = prioritizedMarginTypes.indexOf(a.value);
+    const bIndex = prioritizedMarginTypes.indexOf(b.value);
+    if (aIndex === -1 && bIndex === -1) return 0;
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
   const updateData = (field: keyof SimulationData, value: string) => {
-    setData(prev => ({ ...prev, [field]: value }));
+    setData((prev) => {
+      let next = { ...prev, [field]: value };
+      if (field === "organ") {
+        const convenio = getConvenioById(value);
+        const available = convenio?.produtosDisponiveis ?? [];
+        if (prev.marginType) {
+          const previousMargin = prev.marginType as MarginType;
+          if (!available.includes(previousMargin)) {
+            next.marginType = "";
+          }
+        }
+      }
+      return next;
+    });
     setTouched(prev => ({ ...prev, [field]: true }));
     // Limpar erro ao digitar
     if (errors[field]) {
@@ -254,24 +311,35 @@ export default function Simulator({ onComplete }: SimulatorProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="organ" className="text-base flex items-center">
-                      Selecione seu órgão/prefeitura
-                      <InfoTooltip content="Escolha o órgão onde você trabalha ou recebe seu benefício" />
+                    <Label className="text-base flex items-center gap-2">
+                      Selecione seu convênio ativo
+                      <InfoTooltip content="Mostramos apenas o nome do convênio; as datas e taxas ficam na base para o cálculo." />
                     </Label>
-                    <Select value={data.organ} onValueChange={(v) => updateData('organ', v)}>
-                      <SelectTrigger id="organ" className="h-16 text-lg font-medium border-2 hover:border-primary/50 transition-colors">
-                        <SelectValue placeholder="Escolha uma opção" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[300px]">
-                        <SelectItem value="prefeitura-sp" className="text-lg py-4 cursor-pointer">Prefeitura de São Paulo</SelectItem>
-                        <SelectItem value="prefeitura-rj" className="text-lg py-4 cursor-pointer">Prefeitura do Rio de Janeiro</SelectItem>
-                        <SelectItem value="prefeitura-bh" className="text-lg py-4 cursor-pointer">Prefeitura de Belo Horizonte</SelectItem>
-                        <SelectItem value="governo-sp" className="text-lg py-4 cursor-pointer">Governo do Estado de SP</SelectItem>
-                        <SelectItem value="governo-rj" className="text-lg py-4 cursor-pointer">Governo do Estado do RJ</SelectItem>
-                        <SelectItem value="governo-mg" className="text-lg py-4 cursor-pointer">Governo do Estado de MG</SelectItem>
-                        <SelectItem value="inss-geral" className="text-lg py-4 cursor-pointer">INSS</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      Apenas convênios com janela vigente aparecem aqui. Se nenhum item surgir, mude o tipo de vínculo.
+                    </p>
+                    {selectedType ? (
+                      <Select value={data.organ} onValueChange={(value) => updateData("organ", value)}>
+                        <SelectTrigger className="h-16 text-lg font-medium border-2 hover:border-primary/50 transition-colors">
+                          <SelectValue placeholder="Escolha seu convênio" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {conveniosByType.map((convenio) => (
+                            <SelectItem
+                              key={convenio.id}
+                              value={convenio.id}
+                              className="text-lg py-4"
+                            >
+                              {convenio.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Escolha o tipo de vínculo para liberar os convênios correspondentes.
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -313,83 +381,52 @@ export default function Simulator({ onComplete }: SimulatorProps) {
                   </div>
 
                   <div className="space-y-3">
-                    <Label className="text-base font-semibold flex items-center">
+                    <Label className="text-base font-semibold flex items-center gap-2">
                       Tipo de margem disponível
-                      <InfoTooltip content="É o tipo de desconto que você pode ter na sua folha de pagamento" />
+                      <InfoTooltip content="Cartões apagados indicam ausência de dados para esse convênio; nos demais temos o cálculo pronto." />
                     </Label>
                     <RadioGroup value={data.marginType} onValueChange={(v) => updateData('marginType', v)}>
-                      <label
-                        htmlFor="emprestimo"
-                        className={cn(
-                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                          data.marginType === "emprestimo" 
-                            ? "border-primary bg-primary/5 shadow-md" 
-                            : "border-border hover:border-primary/50 hover:bg-accent/50"
-                        )}
-                      >
-                        <RadioGroupItem value="emprestimo" id="emprestimo" className="w-6 h-6" />
-                        <div className="flex-1">
-                          <div className="font-semibold text-lg">Margem Empréstimo</div>
-                          <div className="text-base text-muted-foreground">Para saque em dinheiro</div>
-                        </div>
-                        {data.marginType === "emprestimo" && (
-                          <CheckCircle2 className="w-6 h-6 text-primary" />
-                        )}
-                      </label>
-                      <label
-                        htmlFor="cartao"
-                        className={cn(
-                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                          data.marginType === "cartao" 
-                            ? "border-primary bg-primary/5 shadow-md" 
-                            : "border-border hover:border-primary/50 hover:bg-accent/50"
-                        )}
-                      >
-                        <RadioGroupItem value="cartao" id="cartao" className="w-6 h-6" />
-                        <div className="flex-1">
-                          <div className="font-semibold text-lg">Margem Cartão Consignado</div>
-                          <div className="text-base text-muted-foreground">Para usar como cartão de crédito</div>
-                        </div>
-                        {data.marginType === "cartao" && (
-                          <CheckCircle2 className="w-6 h-6 text-primary" />
-                        )}
-                      </label>
-                      <label
-                        htmlFor="beneficio"
-                        className={cn(
-                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                          data.marginType === "beneficio" 
-                            ? "border-primary bg-primary/5 shadow-md" 
-                            : "border-border hover:border-primary/50 hover:bg-accent/50"
-                        )}
-                      >
-                        <RadioGroupItem value="beneficio" id="beneficio" className="w-6 h-6" />
-                        <div className="flex-1">
-                          <div className="font-semibold text-lg">Margem Cartão Benefício</div>
-                          <div className="text-base text-muted-foreground">Para alimentação/refeição</div>
-                        </div>
-                        {data.marginType === "beneficio" && (
-                          <CheckCircle2 className="w-6 h-6 text-primary" />
-                        )}
-                      </label>
-                      <label
-                        htmlFor="outra"
-                        className={cn(
-                          "flex items-center space-x-4 p-5 border-2 rounded-xl cursor-pointer transition-all duration-200",
-                          data.marginType === "outra" 
-                            ? "border-primary bg-primary/5 shadow-md" 
-                            : "border-border hover:border-primary/50 hover:bg-accent/50"
-                        )}
-                      >
-                        <RadioGroupItem value="outra" id="outra" className="w-6 h-6" />
-                        <div className="flex-1">
-                          <div className="font-semibold text-lg">Outra</div>
-                          <div className="text-base text-muted-foreground">Não sei qual é minha margem</div>
-                        </div>
-                        {data.marginType === "outra" && (
-                          <CheckCircle2 className="w-6 h-6 text-primary" />
-                        )}
-                      </label>
+                      {sortedMarginOptions.map((option) => {
+                        const isAvailable = selectedConvenio
+                          ? selectedConvenio.produtosDisponiveis?.includes(option.value) ?? false
+                          : true;
+                        return (
+                          <label
+                            key={option.value}
+                            htmlFor={option.value}
+                            aria-disabled={!isAvailable}
+                            className={cn(
+                              "flex items-center space-x-4 p-5 border-2 rounded-xl transition-all duration-200",
+                              isAvailable
+                                ? data.marginType === option.value
+                                  ? "border-primary bg-primary/5 shadow-md"
+                                  : "border-border hover:border-primary/50 hover:bg-accent/50 cursor-pointer"
+                                : "border-border bg-muted/20 text-muted-foreground opacity-60 cursor-not-allowed pointer-events-none"
+                            )}
+                          >
+                            <RadioGroupItem
+                              value={option.value}
+                              id={option.value}
+                              className="w-6 h-6"
+                              disabled={!isAvailable}
+                            />
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <div className="font-semibold text-lg text-foreground">{option.label}</div>
+                                {!isAvailable && (
+                                  <InfoTooltip content="Ainda não temos dados de margem para esse convênio." />
+                                )}
+                              </div>
+                              <div className="text-base text-muted-foreground">
+                                {option.description}
+                              </div>
+                            </div>
+                            {isAvailable && data.marginType === option.value && (
+                              <CheckCircle2 className="w-6 h-6 text-primary" />
+                            )}
+                          </label>
+                        );
+                      })}
                     </RadioGroup>
                   </div>
 
