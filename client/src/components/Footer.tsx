@@ -11,7 +11,7 @@ export default function Footer() {
               <img 
                 src="/Acessus_logo_horizontal-branco.png" 
                 alt="Acessus" 
-                className="h-8 mb-4 brightness-0 invert" 
+                className="h-14 mb-4 brightness-0 invert" 
               />
               <p className="text-sm text-white/80">
                 Soluções financeiras acessíveis e transparentes para servidores públicos.
