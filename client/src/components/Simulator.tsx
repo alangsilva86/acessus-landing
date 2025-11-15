@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, CheckCircle2, Shield, AlertCircle } from "lu
 import InfoTooltip from "./InfoTooltip";
 import { cn } from "@/lib/utils";
 import { getConveniosByTipo, getConvenioById, type MarginType } from "@/data/convenios";
+import type { SimulationData } from "@/types/simulation";
 
 const MARGIN_OPTIONS: { value: MarginType; label: string; description: string }[] = [
   {
@@ -37,13 +38,6 @@ const KNOWN_USER_TYPES = ["municipal", "estadual", "inss"] as const;
 type KnownUserType = (typeof KNOWN_USER_TYPES)[number];
 
 type MarginTypeOption = MarginType | "";
-
-interface SimulationData {
-  userType: string;
-  organ: string;
-  marginType: MarginTypeOption;
-  marginValue: string;
-}
 
 interface SimulatorProps {
   onComplete: (data: SimulationData) => void;

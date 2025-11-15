@@ -15,13 +15,7 @@ import { cn } from "@/lib/utils";
 import { getConvenioById } from "@/data/convenios";
 import InfoTooltip from "@/components/InfoTooltip";
 import { simulateWithMargin, DEFAULT_TERMS } from "@/lib/coefficientEngine";
-
-interface SimulationData {
-  userType: string;
-  organ: string;
-  marginType: string;
-  marginValue: string;
-}
+import type { SimulationData } from "@/types/simulation";
 
 interface SimulationResultProps {
   data: SimulationData;
