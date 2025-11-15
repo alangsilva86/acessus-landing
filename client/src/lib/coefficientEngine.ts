@@ -29,7 +29,9 @@ interface CoefficientRegistry {
   };
 }
 
-const marginToTaxField: Record<MarginType, keyof Convenio["taxas"]> = {
+type TaxField = keyof NonNullable<Convenio["taxas"]>;
+
+const marginToTaxField: Record<MarginType, TaxField> = {
   emprestimo: "normal",
   cartao: "normal",
   beneficio: "normal",
