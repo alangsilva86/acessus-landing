@@ -7,18 +7,13 @@ import SimulationResult from "@/components/SimulationResult";
 import SocialProof from "@/components/SocialProof";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
-
-interface SimulationData {
-  userType: string;
-  organ: string;
-  birthDate: string;
-  marginType: string;
-  marginValue: string;
-}
+import LeadCapture from "@/components/LeadCapture";
+import type { SimulationData } from "@/types/simulation";
 
 export default function Home() {
   const [showSimulator, setShowSimulator] = useState(false);
   const [simulationData, setSimulationData] = useState<SimulationData | null>(null);
+  const [leadCaptured, setLeadCaptured] = useState(false);
 
   const handleSimulateClick = () => {
     setShowSimulator(true);
@@ -33,14 +28,32 @@ export default function Home() {
 
   const handleSimulationComplete = (data: SimulationData) => {
     setSimulationData(data);
+    setLeadCaptured(false);
     // Manter simulador visível mas scroll para o topo
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 100);
   };
 
+  const handleLeadSubmit = () => {
+    setLeadCaptured(true);
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleEditSimulation = () => {
+    setSimulationData(null);
+    setLeadCaptured(false);
+    setShowSimulator(true);
+    setTimeout(() => {
+      document.getElementById('simulador')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
   const handleReset = () => {
     setSimulationData(null);
+    setLeadCaptured(false);
     setShowSimulator(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -62,8 +75,16 @@ export default function Home() {
         {showSimulator && !simulationData && (
           <Simulator onComplete={handleSimulationComplete} />
         )}
-        
-        {simulationData && (
+
+        {simulationData && !leadCaptured && (
+          <LeadCapture
+            simulationData={simulationData}
+            onSubmit={handleLeadSubmit}
+            onEditSimulation={handleEditSimulation}
+          />
+        )}
+
+        {simulationData && leadCaptured && (
           <SimulationResult data={simulationData} onReset={handleReset} />
         )}
       </main>
