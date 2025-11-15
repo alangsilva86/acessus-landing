@@ -112,8 +112,8 @@ export default function LeadCapture({ simulationData, onSubmit, onEditSimulation
           <Card className="shadow-xl border-none">
             <CardHeader className="text-center space-y-3">
               <CardTitle className="text-3xl">Antes de mostrar o resultado...</CardTitle>
-              <CardDescription className="text-base">
-                Precisamos do seu contato para enviar a simulação completa e avançar com o atendimento.
+              <CardDescription className="text-base text-muted-foreground">
+                Seus dados são protegidos e usados apenas para enviar a simulação personalizada com segurança.
               </CardDescription>
             </CardHeader>
 
@@ -142,6 +142,12 @@ export default function LeadCapture({ simulationData, onSubmit, onEditSimulation
                   <p className="text-xs text-muted-foreground">
                     Ao enviar, nossa equipe receberá esses dados em tempo real e seguirá com o atendimento pelo WhatsApp.
                   </p>
+                  <div className="text-xs text-muted-foreground space-y-1 border-t border-primary/10 pt-4">
+                    <p className="text-sm font-medium text-foreground">
+                      Correspondente Homologado {convenio?.name ?? simulationData.organ}
+                    </p>
+                    <p>Acessus Serviços Financeiros | CNPJ 60.341.978/0001-49</p>
+                  </div>
                 </div>
 
                 <form className="space-y-5" onSubmit={handleSubmit}>
