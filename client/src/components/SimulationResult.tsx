@@ -215,9 +215,6 @@ Aguardo retorno!`;
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-center text-muted-foreground">
-                  Os coeficientes seguem a interpolação descrita nas etapas 5‑6.
-                </p>
               </div>
 
               <div className="bg-accent/30 p-4 rounded-lg border border-border">
@@ -236,15 +233,6 @@ Aguardo retorno!`;
                   </div>
                 </div>
               </div>
-
-              {currentSimulation && (
-                <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 text-sm text-muted-foreground space-y-1">
-                  <p className="font-semibold text-foreground">Resumo</p>
-                  <p>Coeficiente diário (dia {currentSimulation.referenceDate}): {currentSimulation.coeficiente.toFixed(6)}</p>
-                  <p>TAC estimada: R$ {formatCurrency(currentSimulation.tac)}</p>
-                  <p>Valor líquido estimado: R$ {formatCurrency(currentSimulation.valorLiquidoCliente)}</p>
-                </div>
-              )}
 
               <div className="space-y-3 pt-4">
                 <Button
