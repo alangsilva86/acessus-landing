@@ -15,17 +15,18 @@ import { cn } from "@/lib/utils";
 import { getConvenioById, type MarginType } from "@/data/convenios";
 import InfoTooltip from "@/components/InfoTooltip";
 import { simulateWithMargin, DEFAULT_TERMS } from "@/lib/coefficientEngine";
-import type { SimulationData } from "@/types/simulation";
+import type { LeadInfo, SimulationData } from "@/types/simulation";
 
 interface SimulationResultProps {
   data: SimulationData;
+  leadInfo?: LeadInfo | null;
   onReset: () => void;
 }
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export default function SimulationResult({ data, onReset }: SimulationResultProps) {
+export default function SimulationResult({ data, leadInfo, onReset }: SimulationResultProps) {
   const marginNumber = parseFloat(data.marginValue.replace(/\./g, "").replace(",", ".")) || 0;
   const referenceDate = useMemo(() => new Date(), [data.organ, data.marginValue]);
 
@@ -103,13 +104,27 @@ export default function SimulationResult({ data, onReset }: SimulationResultProp
     outra: "Outra"
   }[data.marginType] || data.marginType;
 
+  const formatLeadWhatsapp = (value?: string) => {
+    if (!value) return "Não informado";
+    const digits = value.replace(/\D/g, "");
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) {
+      return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    }
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  };
+
   const getWhatsAppMessage = () => {
     const valor = currentSimulation?.valorBrutoLiberado ?? 0;
     const parcela = marginNumber;
+    const leadName = leadInfo?.name?.trim() || "Cliente Acessus";
+    const leadWhatsapp = formatLeadWhatsapp(leadInfo?.whatsapp);
 
   const message = `Olá! Acabei de fazer uma simulação no site da Acessus e gostaria de finalizar meu crédito.
 
 - Meus dados:*
+- Nome: ${leadName}
+- WhatsApp: ${leadWhatsapp}
 - Tipo: ${userTypeText}
 - Órgão: ${organLabel}
 - Tipo de margem: ${marginTypeText}
@@ -125,7 +140,7 @@ Aguardo retorno!`;
     return encodeURIComponent(message);
   };
 
-  const whatsappNumber = "5511999999999";
+  const whatsappNumber = "554123912160";
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${getWhatsAppMessage()}`;
 
   return (
