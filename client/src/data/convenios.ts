@@ -5,6 +5,14 @@
 export type ConvenioTipo = "municipal" | "estadual" | "inss";
 export type MarginType = "emprestimo" | "cartao" | "beneficio" | "outra";
 
+export interface TaxProfile {
+  normal?: number;
+  flex1?: number;
+  flex2?: number;
+}
+
+export type MarginTaxTable = Partial<Record<MarginType, TaxProfile>>;
+
 export interface Convenio {
   id: string;
   name: string;
@@ -14,11 +22,7 @@ export interface Convenio {
     fim: string;
     vencimento: string;
   };
-  taxas?: {
-    normal?: number;
-    flex1?: number;
-    flex2?: number;
-  };
+  taxas?: MarginTaxTable;
   produtosDisponiveis: MarginType[];
 }
 
@@ -32,8 +36,8 @@ const conveniosData: Convenio[] = [
       fim: "30/11/25",
       vencimento: "10/02/26"
     },
-    taxas: { normal: 4.8, flex1: 4.3, flex2: 3.5 },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    taxas: { beneficio: { normal: 4.8, flex1: 4.3, flex2: 3.5 } },
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "prefeitura-curitiba-pr",
@@ -44,8 +48,8 @@ const conveniosData: Convenio[] = [
       fim: "30/11/25",
       vencimento: "10/01/26"
     },
-    taxas: { normal: 4.5, flex1: 4.2, flex2: 3.9 },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    taxas: { beneficio: { normal: 4.5, flex1: 4.2, flex2: 3.9 } },
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "prefeitura-pirai-do-sul-pr",
@@ -57,11 +61,13 @@ const conveniosData: Convenio[] = [
       vencimento: "15/12/25"
     },
     taxas: {
-      normal: 5.5,
-      flex1: 4.9,
-      flex2: 4.4
+      beneficio: {
+        normal: 5.5,
+        flex1: 4.9,
+        flex2: 4.4
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "prefeitura-guaratuba-pr",
@@ -73,11 +79,13 @@ const conveniosData: Convenio[] = [
       vencimento: "15/01/26"
     },
     taxas: {
-      normal: 5.5,
-      flex1: 4.9,
-      flex2: 4.4
+      beneficio: {
+        normal: 5.5,
+        flex1: 4.9,
+        flex2: 4.4
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "prefeitura-maringa-pr",
@@ -89,9 +97,11 @@ const conveniosData: Convenio[] = [
       vencimento: "10/01/26"
     },
     taxas: {
-      normal: 4.3
+      beneficio: {
+        normal: 4.3
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "prefeitura-ponta-grossa-pr",
@@ -103,11 +113,13 @@ const conveniosData: Convenio[] = [
       vencimento: "10/01/26"
     },
     taxas: {
-      normal: 5.5,
-      flex1: 4.9,
-      flex2: 4.4
+      beneficio: {
+        normal: 5.5,
+        flex1: 4.9,
+        flex2: 4.4
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "guaraprev",
@@ -119,11 +131,13 @@ const conveniosData: Convenio[] = [
       vencimento: "15/12/25"
     },
     taxas: {
-      normal: 5.5,
-      flex1: 4.9,
-      flex2: 4.4
+      beneficio: {
+        normal: 5.5,
+        flex1: 4.9,
+        flex2: 4.4
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "prefeitura-cambara-pr",
@@ -135,9 +149,11 @@ const conveniosData: Convenio[] = [
       vencimento: "05/12/25"
     },
     taxas: {
-      normal: 5.5
+      beneficio: {
+        normal: 5.5
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "gov-goias",
@@ -149,11 +165,13 @@ const conveniosData: Convenio[] = [
       vencimento: "15/01/26"
     },
     taxas: {
-      normal: 6.5,
-      flex1: 5.9,
-      flex2: 5.3
+      beneficio: {
+        normal: 6.5,
+        flex1: 5.9,
+        flex2: 5.3
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "prefeitura-medianeira-pr",
@@ -165,10 +183,12 @@ const conveniosData: Convenio[] = [
       vencimento: "15/01/26"
     },
     taxas: {
-      normal: 5.5,
-      flex1: 5.0
+      beneficio: {
+        normal: 5.5,
+        flex1: 5.0
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "prefeitura-arapongas-pr",
@@ -180,10 +200,12 @@ const conveniosData: Convenio[] = [
       vencimento: "10/01/26"
     },
     taxas: {
-      normal: 5.9,
-      flex1: 5.5
+      beneficio: {
+        normal: 5.9,
+        flex1: 5.5
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "prefeitura-londrina-pr",
@@ -195,9 +217,11 @@ const conveniosData: Convenio[] = [
       vencimento: "15/12/25"
     },
     taxas: {
-      normal: 4.5
+      beneficio: {
+        normal: 4.5
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "tribunal-contas-pr",
@@ -209,9 +233,11 @@ const conveniosData: Convenio[] = [
       vencimento: "15/01/26"
     },
     taxas: {
-      normal: 4.8
+      beneficio: {
+        normal: 4.8
+      }
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   },
   {
     id: "inss-geral",
@@ -222,22 +248,13 @@ const conveniosData: Convenio[] = [
       fim: "31/12/25",
       vencimento: "10/02/26"
     },
-    produtosDisponiveis: ["emprestimo", "cartao", "beneficio"]
+    produtosDisponiveis: ["beneficio"]
   }
 ];
 
 const conveniosMap = new Map(conveniosData.map((convenio) => [convenio.id, convenio]));
 
 export const convenios = conveniosData;
-
-type TaxField = "normal" | "flex1" | "flex2";
-
-export const convertionMarginField: Record<MarginType, TaxField> = {
-  emprestimo: "normal",
-  cartao: "normal",
-  beneficio: "normal",
-  outra: "normal"
-};
 
 export const getConvenioById = (id?: string) => {
   if (!id) return undefined;
@@ -252,6 +269,7 @@ export const getAllConvenios = () => [...conveniosData];
 export const getTaxaForMargin = (convenioId: string, margin: MarginType) => {
   const convenio = getConvenioById(convenioId);
   if (!convenio) return null;
-  const field = convertionMarginField[margin];
-  return convenio.taxas?.[field] ?? null;
+  const marginTable = convenio.taxas?.[margin];
+  if (!marginTable) return null;
+  return marginTable.normal ?? marginTable.flex1 ?? marginTable.flex2 ?? null;
 };
