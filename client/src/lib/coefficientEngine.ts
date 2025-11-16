@@ -1,4 +1,9 @@
-import { convenios, type Convenio, type MarginType, getTaxaForMargin } from "@/data/convenios";
+import {
+  convenios,
+  type Convenio,
+  type MarginType,
+  getTaxaForMargin
+} from "@/data/convenios";
 
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
 const IOF_DAILY_RATE = 0.000038;
@@ -23,10 +28,10 @@ interface CoefficientEntry {
   evaluator: (day: number) => number;
 }
 
+type PrazoRegistry = Record<number, CoefficientEntry>;
+
 interface CoefficientRegistry {
-  [convenioId: string]: {
-    [prazo: number]: CoefficientEntry;
-  };
+  [convenioId: string]: Partial<Record<MarginType, PrazoRegistry>>;
 }
 
 const coefficientRegistry = buildCoefficientRegistry(convenios, DEFAULT_TERMS);
@@ -42,42 +47,48 @@ function buildCoefficientRegistry(
     if (!inicio || !fim || Number.isNaN(inicio.getTime()) || Number.isNaN(fim.getTime())) {
       continue;
     }
-    const prazoRegistry: Record<number, CoefficientEntry> = {};
     const totalDays = Math.max(0, differenceInDays(fim, inicio));
-
-    for (const prazo of prazos) {
-      const taxa = getTaxaForMargin(convenio.id, "beneficio");
+    const marginRegistry: Partial<Record<MarginType, PrazoRegistry>> = {};
+    for (const marginType of convenio.produtosDisponiveis ?? []) {
+      const taxa = getTaxaForMargin(convenio.id, marginType);
       if (taxa === null) {
         continue;
       }
-      const scenarioStart = createScenario({
-        prazoMeses: prazo,
-        taxaMensal: taxa,
-        dataLiberacao: inicio,
-        dataPrimeiroVencimento: addDays(inicio, 30)
-      });
-      const scenarioEnd = createScenario({
-        prazoMeses: prazo,
-        taxaMensal: taxa,
-        dataLiberacao: fim,
-        dataPrimeiroVencimento: addDays(inicio, 30)
-      });
+      const prazoRegistry: PrazoRegistry = {};
+      for (const prazo of prazos) {
+        const scenarioStart = createScenario({
+          prazoMeses: prazo,
+          taxaMensal: taxa,
+          dataLiberacao: inicio,
+          dataPrimeiroVencimento: addDays(inicio, 30)
+        });
+        const scenarioEnd = createScenario({
+          prazoMeses: prazo,
+          taxaMensal: taxa,
+          dataLiberacao: fim,
+          dataPrimeiroVencimento: addDays(inicio, 30)
+        });
 
-      const nodes = [{ x: 0, y: scenarioStart.coeficiente }];
-      if (totalDays > 0) {
-        nodes.push({ x: totalDays, y: scenarioEnd.coeficiente });
+        const nodes = [{ x: 0, y: scenarioStart.coeficiente }];
+        if (totalDays > 0) {
+          nodes.push({ x: totalDays, y: scenarioEnd.coeficiente });
+        }
+
+        const evaluator = createNaturalSpline(nodes);
+        prazoRegistry[prazo] = {
+          startDate: inicio,
+          endDate: fim,
+          totalDays,
+          evaluator
+        };
       }
-
-      const evaluator = createNaturalSpline(nodes);
-      prazoRegistry[prazo] = {
-        startDate: inicio,
-        endDate: fim,
-        totalDays,
-        evaluator
-      };
+      if (Object.keys(prazoRegistry).length > 0) {
+        marginRegistry[marginType] = prazoRegistry;
+      }
     }
-
-    registry[convenio.id] = prazoRegistry;
+    if (Object.keys(marginRegistry).length > 0) {
+      registry[convenio.id] = marginRegistry;
+    }
   }
   return registry;
 }
@@ -223,12 +234,15 @@ function formatDateKey(date: Date) {
 
 function getCoefficientForDay(
   convenioId: string,
+  marginType: MarginType,
   prazo: number,
   referenceDate: Date
 ): number | null {
   const convenioRecord = coefficientRegistry[convenioId];
   if (!convenioRecord) return null;
-  const entry = convenioRecord[prazo];
+  const marginRegistry = convenioRecord[marginType];
+  if (!marginRegistry) return null;
+  const entry = marginRegistry[prazo];
   if (!entry) return null;
   const dayIndex = differenceInDays(referenceDate, entry.startDate);
   if (dayIndex <= 0) {
@@ -242,12 +256,13 @@ function getCoefficientForDay(
 
 export function simulateWithMargin(
   convenioId: string,
+  marginType: MarginType,
   margem: number,
   prazoMeses: number,
   referenceDate = new Date()
 ): SimulationResult | null {
   if (margem <= 0 || !convenioId) return null;
-  const coeficiente = getCoefficientForDay(convenioId, prazoMeses, referenceDate);
+  const coeficiente = getCoefficientForDay(convenioId, marginType, prazoMeses, referenceDate);
   if (!coeficiente) return null;
   const valorBruto = margem / coeficiente;
   const tac = valorBruto * TAC_RATE;

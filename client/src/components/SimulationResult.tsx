@@ -12,7 +12,7 @@ import {
 import WhatsAppPreview from "./WhatsAppPreview";
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
 import { cn } from "@/lib/utils";
-import { getConvenioById } from "@/data/convenios";
+import { getConvenioById, type MarginType } from "@/data/convenios";
 import InfoTooltip from "@/components/InfoTooltip";
 import { simulateWithMargin, DEFAULT_TERMS } from "@/lib/coefficientEngine";
 import type { SimulationData } from "@/types/simulation";
@@ -30,8 +30,9 @@ export default function SimulationResult({ data, onReset }: SimulationResultProp
   const referenceDate = useMemo(() => new Date(), [data.organ, data.marginValue]);
 
   const simulateTerm = useCallback(
-    (term: number) => simulateWithMargin(data.organ, marginNumber, term, referenceDate),
-    [data.organ, marginNumber, referenceDate]
+    (term: number) =>
+      simulateWithMargin(data.organ, data.marginType as MarginType, marginNumber, term, referenceDate),
+    [data.organ, data.marginType, marginNumber, referenceDate]
   );
 
   const termoSimulations = useMemo(
