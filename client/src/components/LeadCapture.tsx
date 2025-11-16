@@ -84,15 +84,16 @@ export default function LeadCapture({ simulationData, onSubmit, onEditSimulation
     setIsSubmitting(true);
     try {
       await sendLead();
-      onSubmit();
     } catch (submissionError) {
       const message =
         submissionError instanceof Error
           ? submissionError.message
           : "Erro inesperado ao salvar seus dados.";
       setError(message);
+      console.error("Não foi possível salvar os dados do lead, mas a simulação continuará.", submissionError);
     } finally {
       setIsSubmitting(false);
+      onSubmit();
     }
   };
 
