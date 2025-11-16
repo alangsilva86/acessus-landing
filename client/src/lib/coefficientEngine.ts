@@ -82,8 +82,22 @@ function buildCoefficientRegistry(
   return registry;
 }
 
-function parseDate(value: string): Date {
-  return new Date(`${value}T00:00:00`);
+function parseDate(value: string): Date | null {
+  if (!value) return null;
+  const parts = value.split("/");
+  if (parts.length !== 3) return null;
+
+  const [dayStr, monthStr, yearStr] = parts;
+  const day = Number(dayStr);
+  const month = Number(monthStr);
+  const year = Number(yearStr.length === 2 ? `20${yearStr}` : yearStr);
+
+  if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) {
+    return null;
+  }
+
+  const parsed = new Date(year, month - 1, day);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function differenceInDays(late: Date, early: Date): number {
