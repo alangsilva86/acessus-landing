@@ -1,3 +1,10 @@
+/**
+ * NOTE: The serverless API code executes the JavaScript build artifact found in
+ * `shared/lead.js`. Keep the logic in this file in sync with that runtime
+ * version so that both the client bundle and the serverless functions behave
+ * the same way.
+ */
+
 export interface SimulationPayload {
   userType: string;
   organ: string;
