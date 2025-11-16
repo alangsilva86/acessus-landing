@@ -67,8 +67,8 @@ export default function FAQ() {
             <p className="text-muted-foreground mb-4">
               Não encontrou sua resposta?
             </p>
-            <a 
-              href="https://wa.me/5511999999999" 
+            <a
+              href="https://wa.me/554123912160"
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-primary font-semibold hover:underline"

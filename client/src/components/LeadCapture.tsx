@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, ChevronLeft, Loader2, Phone, Shield, UserRound } from "lucide-react";
 import { getConvenioById } from "@/data/convenios";
-import type { SimulationData } from "@/types/simulation";
+import type { LeadInfo, SimulationData } from "@/types/simulation";
 import { hasValidWhatsapp, sanitizeWhatsapp } from "@shared/lead";
 
 interface LeadCaptureProps {
   simulationData: SimulationData;
-  onSubmit: () => void;
+  onSubmit: (lead: LeadInfo) => void;
   onEditSimulation: () => void;
 }
 
@@ -60,13 +60,13 @@ export default function LeadCapture({ simulationData, onSubmit, onEditSimulation
     return true;
   };
 
-  const sendLead = async () => {
+  const sendLead = async (lead: LeadInfo) => {
     const response = await fetch("/api/leads", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name: name.trim(),
-        whatsapp: sanitizeWhatsapp(whatsapp),
+        name: lead.name,
+        whatsapp: lead.whatsapp,
         simulation: simulationData
       })
     });
@@ -82,8 +82,15 @@ export default function LeadCapture({ simulationData, onSubmit, onEditSimulation
     if (!validate()) return;
 
     setIsSubmitting(true);
+    const trimmedName = name.trim();
+    const sanitizedWhatsapp = sanitizeWhatsapp(whatsapp);
+    const leadInfo: LeadInfo = {
+      name: trimmedName,
+      whatsapp: sanitizedWhatsapp
+    };
+
     try {
-      await sendLead();
+      await sendLead(leadInfo);
     } catch (submissionError) {
       const message =
         submissionError instanceof Error
@@ -93,7 +100,7 @@ export default function LeadCapture({ simulationData, onSubmit, onEditSimulation
       console.error("Não foi possível salvar os dados do lead, mas a simulação continuará.", submissionError);
     } finally {
       setIsSubmitting(false);
-      onSubmit();
+      onSubmit(leadInfo);
     }
   };
 
