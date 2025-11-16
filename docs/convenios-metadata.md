@@ -17,16 +17,18 @@ Todos os convênios vivem em `client/src/data/convenios.ts`. Cada entrada segue 
     vencimento: "DD/MM/AA"
   }
   taxas?: {
-    normal?: number;
-    flex1?: number;
-    flex2?: number;
+    [margin in MarginType]?: {
+      normal?: number;
+      flex1?: number;
+      flex2?: number;
+    }
   }
   produtosDisponiveis: MarginType[];
 }
 ```
 
 - `produtosDisponiveis` determina quais `MarginType` ficam habilitados no passo 2. Ele também é usado pela engine (`simulateWithMargin`) para decidir se há coeficiente diário para um dado tipo de margem.
-- `taxas` alimenta o motor do coeficiente (Tabela Price). Se a propriedade estiver faltando, a combinação é considerada incompleta.
+- `taxas` agora é um mapa por tipo de margem. Cada margem pode ter `normal`/`flex` próprios. Se o registro não tiver a entrada daquela margem, a combinação é considerada incompleta.
 
 ## Como adicionar um convênio
 
@@ -34,15 +36,15 @@ Todos os convênios vivem em `client/src/data/convenios.ts`. Cada entrada segue 
 2. Copie um objeto existente e ajuste:
    - `id`: nunca mude após publicar porque ele aparece no payload público.
    - `janela`: defina as datas válidas; o motor gera coeficientes apenas dentro delas.
-   - `taxas`: informe `normal`, `flex1`, `flex2` conforme a política do convênio.
+   - `taxas`: para cada `MarginType` disponível, informe `normal`, `flex1`, `flex2` conforme a política do convênio.
    - `produtosDisponiveis`: liste os `MarginType` que podem ser usados (ex.: `["beneficio"]` se só houver saque).
 3. Salve, garanta que o lint/format aceita e rode `pnpm dev`/`pnpm build` para regenerar a tabela.
 
 ## Fluxo de dependência
 
 1. `Simulator` consome `produtosDisponiveis` para ativar/desativar cards e ordená-los (items disponíveis primeiro).
-2. `coefficientEngine` percorre `convenios` e cria splines entre `janela.inicio` e `janela.fim`.
-3. Quando o usuário envia margem/prazo, `simulateWithMargin` usa o coeficiente do dia atual e retorna `valorLiberado`, `tac` e `coeficiente`.
+2. `coefficientEngine` percorre `convenios`, gera uma spline por `MarginType` disponível e cria splines entre `janela.inicio` e `janela.fim`.
+3. Quando o usuário envia margem/prazo, `simulateWithMargin` usa o coeficiente do dia atual considerando o `MarginType` escolhido e retorna `valorLiberado`, `tac` e `coeficiente`.
 4. `SimulationResult` usa o resultado para mostrar o valor final e habilitar o WhatsApp apenas em combinações válidas.
 
 ## Diagnóstico

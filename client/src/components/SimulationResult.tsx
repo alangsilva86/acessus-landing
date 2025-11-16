@@ -12,26 +12,28 @@ import {
 import WhatsAppPreview from "./WhatsAppPreview";
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
 import { cn } from "@/lib/utils";
-import { getConvenioById } from "@/data/convenios";
+import { getConvenioById, type MarginType } from "@/data/convenios";
 import InfoTooltip from "@/components/InfoTooltip";
 import { simulateWithMargin, DEFAULT_TERMS } from "@/lib/coefficientEngine";
-import type { SimulationData } from "@/types/simulation";
+import type { LeadInfo, SimulationData } from "@/types/simulation";
 
 interface SimulationResultProps {
   data: SimulationData;
+  leadInfo?: LeadInfo | null;
   onReset: () => void;
 }
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export default function SimulationResult({ data, onReset }: SimulationResultProps) {
+export default function SimulationResult({ data, leadInfo, onReset }: SimulationResultProps) {
   const marginNumber = parseFloat(data.marginValue.replace(/\./g, "").replace(",", ".")) || 0;
   const referenceDate = useMemo(() => new Date(), [data.organ, data.marginValue]);
 
   const simulateTerm = useCallback(
-    (term: number) => simulateWithMargin(data.organ, marginNumber, term, referenceDate),
-    [data.organ, marginNumber, referenceDate]
+    (term: number) =>
+      simulateWithMargin(data.organ, data.marginType as MarginType, marginNumber, term, referenceDate),
+    [data.organ, data.marginType, marginNumber, referenceDate]
   );
 
   const termoSimulations = useMemo(
@@ -102,13 +104,27 @@ export default function SimulationResult({ data, onReset }: SimulationResultProp
     outra: "Outra"
   }[data.marginType] || data.marginType;
 
+  const formatLeadWhatsapp = (value?: string) => {
+    if (!value) return "Não informado";
+    const digits = value.replace(/\D/g, "");
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) {
+      return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    }
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  };
+
   const getWhatsAppMessage = () => {
     const valor = currentSimulation?.valorBrutoLiberado ?? 0;
     const parcela = marginNumber;
+    const leadName = leadInfo?.name?.trim() || "Cliente Acessus";
+    const leadWhatsapp = formatLeadWhatsapp(leadInfo?.whatsapp);
 
   const message = `Olá! Acabei de fazer uma simulação no site da Acessus e gostaria de finalizar meu crédito.
 
 - Meus dados:*
+- Nome: ${leadName}
+- WhatsApp: ${leadWhatsapp}
 - Tipo: ${userTypeText}
 - Órgão: ${organLabel}
 - Tipo de margem: ${marginTypeText}
@@ -124,7 +140,7 @@ Aguardo retorno!`;
     return encodeURIComponent(message);
   };
 
-  const whatsappNumber = "5511999999999";
+  const whatsappNumber = "554123912160";
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${getWhatsAppMessage()}`;
 
   return (
@@ -215,9 +231,6 @@ Aguardo retorno!`;
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-center text-muted-foreground">
-                  Os coeficientes seguem a interpolação descrita nas etapas 5‑6.
-                </p>
               </div>
 
               <div className="bg-accent/30 p-4 rounded-lg border border-border">
@@ -236,15 +249,6 @@ Aguardo retorno!`;
                   </div>
                 </div>
               </div>
-
-              {currentSimulation && (
-                <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 text-sm text-muted-foreground space-y-1">
-                  <p className="font-semibold text-foreground">Resumo</p>
-                  <p>Coeficiente diário (dia {currentSimulation.referenceDate}): {currentSimulation.coeficiente.toFixed(6)}</p>
-                  <p>TAC estimada: R$ {formatCurrency(currentSimulation.tac)}</p>
-                  <p>Valor líquido estimado: R$ {formatCurrency(currentSimulation.valorLiquidoCliente)}</p>
-                </div>
-              )}
 
               <div className="space-y-3 pt-4">
                 <Button

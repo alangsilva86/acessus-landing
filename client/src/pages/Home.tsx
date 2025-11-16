@@ -8,12 +8,13 @@ import SocialProof from "@/components/SocialProof";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import LeadCapture from "@/components/LeadCapture";
-import type { SimulationData } from "@/types/simulation";
+import type { LeadInfo, SimulationData } from "@/types/simulation";
 
 export default function Home() {
   const [showSimulator, setShowSimulator] = useState(false);
   const [simulationData, setSimulationData] = useState<SimulationData | null>(null);
   const [leadCaptured, setLeadCaptured] = useState(false);
+  const [leadInfo, setLeadInfo] = useState<LeadInfo | null>(null);
 
   const handleSimulateClick = () => {
     setShowSimulator(true);
@@ -29,13 +30,15 @@ export default function Home() {
   const handleSimulationComplete = (data: SimulationData) => {
     setSimulationData(data);
     setLeadCaptured(false);
+    setLeadInfo(null);
     // Manter simulador visível mas scroll para o topo
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 100);
   };
 
-  const handleLeadSubmit = () => {
+  const handleLeadSubmit = (lead: LeadInfo) => {
+    setLeadInfo(lead);
     setLeadCaptured(true);
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -45,6 +48,7 @@ export default function Home() {
   const handleEditSimulation = () => {
     setSimulationData(null);
     setLeadCaptured(false);
+    setLeadInfo(null);
     setShowSimulator(true);
     setTimeout(() => {
       document.getElementById('simulador')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -54,6 +58,7 @@ export default function Home() {
   const handleReset = () => {
     setSimulationData(null);
     setLeadCaptured(false);
+    setLeadInfo(null);
     setShowSimulator(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -85,7 +90,7 @@ export default function Home() {
         )}
 
         {simulationData && leadCaptured && (
-          <SimulationResult data={simulationData} onReset={handleReset} />
+          <SimulationResult data={simulationData} leadInfo={leadInfo} onReset={handleReset} />
         )}
       </main>
 
