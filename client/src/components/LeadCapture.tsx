@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { AlertCircle, ChevronLeft, Loader2, Phone, Shield, UserRound } from "lucide-react";
 import { getConvenioById } from "@/data/convenios";
 import type { SimulationData } from "@/types/simulation";
+import { hasValidWhatsapp, sanitizeWhatsapp } from "@shared/lead";
 
 interface LeadCaptureProps {
   simulationData: SimulationData;
@@ -26,8 +27,6 @@ const marginTypeText: Record<string, string> = {
   beneficio: "Margem Cartão Benefício",
   outra: "Outra"
 };
-
-const sanitizeWhatsapp = (value: string) => value.replace(/\D/g, "").slice(0, 11);
 
 const formatWhatsapp = (value: string) => {
   const digits = sanitizeWhatsapp(value);
@@ -52,8 +51,7 @@ export default function LeadCapture({ simulationData, onSubmit, onEditSimulation
       return false;
     }
 
-    const digits = sanitizeWhatsapp(whatsapp);
-    if (digits.length < 10) {
+    if (!hasValidWhatsapp(whatsapp)) {
       setError("Digite um WhatsApp válido com DDD.");
       return false;
     }

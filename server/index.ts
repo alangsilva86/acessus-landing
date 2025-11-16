@@ -4,6 +4,7 @@ import express from "express";
 import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { normalizeLeadSubmission, StoredLead } from "../shared/lead";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,21 +13,6 @@ const resolveStaticPath = () =>
   process.env.NODE_ENV === "production"
     ? path.resolve(__dirname, "public")
     : path.resolve(__dirname, "..", "dist", "public");
-
-interface SimulationPayload {
-  userType: string;
-  organ: string;
-  marginType: string;
-  marginValue: string;
-}
-
-interface StoredLead {
-  id: string;
-  name: string;
-  whatsapp: string;
-  simulation: SimulationPayload;
-  createdAt: string;
-}
 
 const readLeadsFile = async (filepath: string): Promise<StoredLead[]> => {
   try {
@@ -61,23 +47,15 @@ async function startServer() {
   app.use(express.static(staticPath));
 
   app.post("/api/leads", async (req, res) => {
-    const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
-    const whatsappDigits = typeof req.body?.whatsapp === "string" ? req.body.whatsapp.replace(/\D/g, "") : "";
-    const simulation = req.body?.simulation as SimulationPayload | undefined;
+    const normalizedLead = normalizeLeadSubmission(req.body);
 
-    if (!name || whatsappDigits.length < 10) {
-      return res.status(400).json({ message: "Nome e WhatsApp com DDD são obrigatórios." });
-    }
-
-    if (!simulation || !simulation.organ || !simulation.userType) {
-      return res.status(400).json({ message: "Dados da simulação são obrigatórios." });
+    if (!normalizedLead) {
+      return res.status(400).json({ message: "Nome, WhatsApp e dados da simulação são obrigatórios." });
     }
 
     const newLead: StoredLead = {
       id: randomUUID(),
-      name,
-      whatsapp: whatsappDigits,
-      simulation,
+      ...normalizedLead,
       createdAt: new Date().toISOString()
     };
 

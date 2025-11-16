@@ -1,9 +1,6 @@
-export interface SimulationData {
-  userType: string;
-  organ: string;
-  marginType: string;
-  marginValue: string;
-}
+import type { SimulationPayload } from "@shared/lead";
+
+export type SimulationData = SimulationPayload;
 
 export interface LeadInfo {
   name: string;
