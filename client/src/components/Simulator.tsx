@@ -20,12 +20,12 @@ const MARGIN_OPTIONS: { value: MarginType; label: string; description: string }[
   {
     value: "cartao",
     label: "Margem Cartão Consignado",
-    description: "Para usar como cartão de crédito"
+    description: "Para saque em dinheiro e cartão de crédito"
   },
   {
     value: "beneficio",
     label: "Margem Cartão Benefício",
-    description: "Para alimentação/refeição"
+    description: "Para saque em dinheiro"
   },
   {
     value: "outra",
