@@ -47,7 +47,7 @@ export default function LeadCapture({ simulationData, onSubmit, onEditSimulation
 
   const validate = () => {
     if (!name.trim()) {
-      setError("Por favor, informe seu nome completo.");
+      setError("Qual seu nome?");
       return false;
     }
 
@@ -165,7 +165,7 @@ export default function LeadCapture({ simulationData, onSubmit, onEditSimulation
                       <UserRound className="w-4 h-4 text-muted-foreground absolute left-4 top-1/2 -translate-y-1/2" />
                       <Input
                         id="lead-name"
-                        placeholder="Seu nome completo"
+                        placeholder="como podemos te chamar?"
                         value={name}
                         onChange={(event) => {
                           setName(event.target.value);
