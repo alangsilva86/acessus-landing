@@ -67,7 +67,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <TrustBar />
       
-      <main className="flex-1 pr-0 lg:pr-10 xl:pr-20">
+      <main className="flex-1 pr-0 lg:pr-24 xl:pr-32 2xl:pr-40">
         {!showSimulator && !simulationData && (
           <>
             <Hero onSimulateClick={handleSimulateClick} />
