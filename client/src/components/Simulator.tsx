@@ -366,7 +366,7 @@ export default function Simulator({ onComplete }: SimulatorProps) {
 
                   <div className="space-y-2">
                     <Label htmlFor="marginValue" className="text-base flex items-center">
-                      Quanto você pode descontar por mês? (R$)
+                     Margem Disponível | Parcela? (R$)
                       <InfoTooltip content="É o valor que pode ser descontado da sua folha de pagamento todo mês" />
                     </Label>
                     <div className="relative">
