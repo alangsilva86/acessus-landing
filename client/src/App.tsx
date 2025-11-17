@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import { Analytics } from "@vercel/analytics/react";
+import StickyWhatsAppButton from "./components/StickyWhatsAppButton";
 
 function Router() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Toaster />
           <Router />
           <Analytics />
+          <StickyWhatsAppButton />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

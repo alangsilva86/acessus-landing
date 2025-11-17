@@ -26,6 +26,10 @@ interface SimulationResultProps {
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+const TERMS_ABOVE_60 = DEFAULT_TERMS.filter((term) => term > 60);
+const TERM_OPTIONS = TERMS_ABOVE_60.length > 0 ? TERMS_ABOVE_60 : DEFAULT_TERMS;
+const HIGHEST_TERM_OPTION = TERM_OPTIONS[TERM_OPTIONS.length - 1];
+
 export default function SimulationResult({ data, leadInfo, onReset }: SimulationResultProps) {
   const marginNumber = parseFloat(data.marginValue.replace(/\./g, "").replace(",", ".")) || 0;
   const referenceDate = useMemo(() => new Date(), [data.organ, data.marginValue]);
@@ -37,23 +41,20 @@ export default function SimulationResult({ data, leadInfo, onReset }: Simulation
   );
 
   const termoSimulations = useMemo(
-    () => DEFAULT_TERMS.map((term) => ({ term, simulation: simulateTerm(term) })),
+    () => TERM_OPTIONS.map((term) => ({ term, simulation: simulateTerm(term) })),
     [simulateTerm]
   );
 
-  const availableTerm = termoSimulations.find((entry) => entry.simulation)?.term ?? DEFAULT_TERMS[0];
-  const [selectedTerm, setSelectedTerm] = useState(availableTerm);
+  const highestTermWithSimulation = termoSimulations.reduce(
+    (maxTerm, entry) => (entry.simulation ? Math.max(maxTerm, entry.term) : maxTerm),
+    0
+  );
+  const [selectedTerm, setSelectedTerm] = useState(HIGHEST_TERM_OPTION);
 
   useEffect(() => {
-    const hasSelected = termoSimulations.some((entry) => entry.term === selectedTerm && entry.simulation);
-    if (!hasSelected) {
-      if (availableTerm && availableTerm !== selectedTerm) {
-        setSelectedTerm(availableTerm);
-      } else if (!availableTerm) {
-        setSelectedTerm(DEFAULT_TERMS[0]);
-      }
-    }
-  }, [availableTerm, selectedTerm, termoSimulations]);
+    const nextTerm = highestTermWithSimulation || HIGHEST_TERM_OPTION;
+    setSelectedTerm((current) => (current === nextTerm ? current : nextTerm));
+  }, [highestTermWithSimulation, HIGHEST_TERM_OPTION]);
 
   const currentEntry = termoSimulations.find((entry) => entry.term === selectedTerm);
   const currentSimulation = currentEntry?.simulation ?? null;
